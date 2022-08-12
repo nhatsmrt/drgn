@@ -35,10 +35,13 @@ __all__ = (
 
 
 def get_slab_type(prog: Program) -> Type:
-    # Linux kernel commit d122019bf061cccc4583eb9ad40bf58c2fe517be ("mm: Split
-    # slab into its own type") (in v5.17) moved slab information from struct
-    # page to struct slab. The former can be casted to the latter.
+    """
+    Return the slab type of the program.
 
+    Linux kernel commit d122019bf061cccc4583eb9ad40bf58c2fe517be ("mm: Split
+    slab into its own type") (in v5.17) moved slab information from struct
+    page to struct slab. The former can be casted to the latter.
+    """
     try:
         return prog.type("struct slab *")
     except LookupError:
@@ -253,6 +256,13 @@ def slab_cache_for_each_allocated_object(
 
 
 def slab_cache_containing(prog: Program, addr: IntegerLike) -> Object:
+    """
+    Return the slab cache that an address was allocated from, if any.
+
+    :param addr: Address to look up.
+    :return: ``struct kmem_cache *`` containing *addr*, or ``NULL`` if *addr*
+        is not from a slab cache.
+    """
     null_obj = NULL(prog, "struct kmem_cache *")
 
     start_addr = pfn_to_virt(prog["min_low_pfn"])
