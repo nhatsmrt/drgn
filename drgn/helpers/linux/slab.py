@@ -17,11 +17,11 @@ Linux slab allocator.
 
 from typing import Iterator, Optional, Set, Union
 
-from drgn import FaultError, Object, Program, Type, cast, sizeof
+from drgn import FaultError, NULL, Object, Program, Type, cast, sizeof
 from drgn.helpers import escape_ascii_string
 from drgn.helpers.linux.cpumask import for_each_online_cpu
 from drgn.helpers.linux.list import list_for_each_entry
-from drgn.helpers.linux.mm import for_each_page, page_to_virt
+from drgn.helpers.linux.mm import for_each_page, page_to_virt, pfn_to_virt
 from drgn.helpers.linux.percpu import per_cpu_ptr
 
 __all__ = (
@@ -30,7 +30,19 @@ __all__ = (
     "print_slab_caches",
     "slab_cache_for_each_allocated_object",
     "slab_cache_is_merged",
+    "slab_cache_containing",
 )
+
+
+def get_slab_type(prog: Program) -> Type:
+    # Linux kernel commit d122019bf061cccc4583eb9ad40bf58c2fe517be ("mm: Split
+    # slab into its own type") (in v5.17) moved slab information from struct
+    # page to struct slab. The former can be casted to the latter.
+
+    try:
+        return prog.type("struct slab *")
+    except LookupError:
+        return prog.type("struct page *")
 
 
 def slab_cache_is_merged(slab_cache: Object) -> bool:
@@ -226,13 +238,7 @@ def slab_cache_for_each_allocated_object(
                     continue
                 yield Object(prog, pointer_type, value=addr)
 
-    # Linux kernel commit d122019bf061cccc4583eb9ad40bf58c2fe517be ("mm: Split
-    # slab into its own type") (in v5.17) moved slab information from struct
-    # page to struct slab. The former can be casted to the latter.
-    try:
-        slab_type = prog.type("struct slab *")
-    except LookupError:
-        slab_type = prog.type("struct page *")
+    slab_type = get_slab_type(prog)
 
     PG_slab_mask = 1 << prog.constant("PG_slab")
     for page in for_each_page(prog):
@@ -244,3 +250,28 @@ def slab_cache_for_each_allocated_object(
         slab = cast(slab_type, page)
         if slab.slab_cache == slab_cache:
             yield from _slab_page_objects(page, slab)
+
+
+def slab_cache_containing(prog: Program, addr: IntegerLike) -> Object:
+    null_obj = NULL(prog, "struct kmem_cache *")
+
+    start_addr = pfn_to_virt(prog['min_low_pfn'])
+    end_addr = pfn_to_virt(prog['max_pfn']) + prog['PAGE_SIZE']
+
+    if prog < start_addr or progr >= end_addr:
+        # Not a directly mapped address
+        return null_obj
+
+    page = virt_to_page(addr)
+
+    try:
+        PG_slab_mask = 1 << prog.constant("PG_slab")
+        if not page.flags & PG_slab_mask:
+            return null_obj
+
+        slab = cast(get_slab_type(prog), page)
+        return slab.slab_cache
+
+    except FaultError:
+        # Page does not exist
+        return null_obj
