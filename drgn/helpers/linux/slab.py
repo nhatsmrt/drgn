@@ -268,7 +268,7 @@ def slab_cache_containing(prog: Program, addr: IntegerLike) -> Object:
     start_addr = pfn_to_virt(prog["min_low_pfn"])
     end_addr = pfn_to_virt(prog["max_pfn"]) + prog["PAGE_SIZE"]
 
-    if prog < start_addr or progr >= end_addr:
+    if addr < start_addr or addr >= end_addr:
         # Not a directly mapped address
         return null_obj
 
