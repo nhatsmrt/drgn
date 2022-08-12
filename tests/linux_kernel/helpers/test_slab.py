@@ -9,6 +9,7 @@ from drgn.helpers.linux.slab import (
     for_each_slab_cache,
     slab_cache_for_each_allocated_object,
     slab_cache_is_merged,
+    slab_cache_containing,
 )
 from tests.linux_kernel import (
     LinuxKernelTestCase,
@@ -120,3 +121,16 @@ class TestSlab(LinuxKernelTestCase):
                 ),
                 [objects[i] for i in range(5)],
             )
+
+    @skip_unless_have_full_mm_support
+    @skip_unless_have_test_kmod
+    def test_slab_cache_containing(self):
+        cache = self.prog["drgn_test_kmem_cache"]
+        objects = self.prog["drgn_test_slab_objects"]
+
+        if not self.prog["drgn_test_slob"]:
+            for obj in objects:
+                self.assertEqual(
+                    slab_cache_containing(self.prog, obj.address_of_()),
+                    self.prog["drgn_test_kmem_cache"],
+                )
