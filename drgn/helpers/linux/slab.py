@@ -17,7 +17,7 @@ Linux slab allocator.
 
 from typing import Iterator, Optional, Set, Union
 
-from drgn import FaultError, NULL, Object, Program, Type, cast, sizeof
+from drgn import FaultError, NULL, Object, Program, Type, cast, sizeof, IntegerLike
 from drgn.helpers import escape_ascii_string
 from drgn.helpers.linux.cpumask import for_each_online_cpu
 from drgn.helpers.linux.list import list_for_each_entry
