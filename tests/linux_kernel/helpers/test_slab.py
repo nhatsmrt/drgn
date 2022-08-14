@@ -7,9 +7,9 @@ from pathlib import Path
 from drgn.helpers.linux.slab import (
     find_slab_cache,
     for_each_slab_cache,
+    slab_cache_containing,
     slab_cache_for_each_allocated_object,
     slab_cache_is_merged,
-    slab_cache_containing,
 )
 from tests.linux_kernel import (
     LinuxKernelTestCase,
@@ -132,5 +132,5 @@ class TestSlab(LinuxKernelTestCase):
             for obj in objects:
                 self.assertEqual(
                     slab_cache_containing(self.prog, obj.address_of_()),
-                    self.prog["drgn_test_kmem_cache"],
+                    cache,
                 )
