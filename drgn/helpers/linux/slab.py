@@ -17,11 +17,11 @@ Linux slab allocator.
 
 from typing import Iterator, Optional, Set, Union
 
-from drgn import FaultError, NULL, Object, Program, Type, cast, sizeof, IntegerLike
+from drgn import NULL, FaultError, IntegerLike, Object, Program, Type, cast, sizeof
 from drgn.helpers import escape_ascii_string
 from drgn.helpers.linux.cpumask import for_each_online_cpu
 from drgn.helpers.linux.list import list_for_each_entry
-from drgn.helpers.linux.mm import for_each_page, page_to_virt, pfn_to_virt
+from drgn.helpers.linux.mm import for_each_page, page_to_virt, pfn_to_virt, virt_to_page
 from drgn.helpers.linux.percpu import per_cpu_ptr
 
 __all__ = (
@@ -272,7 +272,7 @@ def slab_cache_containing(prog: Program, addr: IntegerLike) -> Object:
         # Not a directly mapped address
         return null_obj
 
-    page = virt_to_page(addr)
+    page = virt_to_page(prog, addr)
 
     try:
         PG_slab_mask = 1 << prog.constant("PG_slab")
