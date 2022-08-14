@@ -131,6 +131,6 @@ class TestSlab(LinuxKernelTestCase):
         if not self.prog["drgn_test_slob"]:
             for obj in objects:
                 self.assertEqual(
-                    slab_cache_containing(self.prog, obj.address_of_()),
+                    slab_cache_containing(self.prog, obj.value_()),
                     cache,
                 )
