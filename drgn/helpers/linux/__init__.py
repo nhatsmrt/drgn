@@ -73,7 +73,7 @@ def identify_address(prog: Program, addr: IntegerLike) -> Optional[str]:
         symbol = prog.symbol(addr)
         offset = addr_value - symbol.address
 
-        return '"{}"+{}'.format(symbol.name, offset)
+        return '"{}+{}"'.format(symbol.name, offset)
     except LookupError:  # not a symbol
         slab_cache = slab_cache_containing(prog, addr)
 
