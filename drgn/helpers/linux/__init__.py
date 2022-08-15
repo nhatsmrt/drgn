@@ -56,8 +56,8 @@ def identify_address(prog: Program, addr: IntegerLike) -> Optional[str]:
 
     This will currently identify the following types of addresses as follows:
 
-    * Symbols (e.g., addresses in functions or global variables): `"symbol_name+offset"`.
-    * Slab objects: `"slab_name"`.
+    * Symbols (e.g., addresses in functions or global variables): `symbol_name+offset`.
+    * Slab objects: `[value_at_address:slab_cache_name]`.
 
     This may learn to recognize other types of addresses in the future.
 
@@ -73,16 +73,17 @@ def identify_address(prog: Program, addr: IntegerLike) -> Optional[str]:
         symbol = prog.symbol(addr)
         offset = addr_value - symbol.address
 
-        return '"{}+{}"'.format(symbol.name, offset)
+        return "{}+{}".format(symbol.name, offset)
     except LookupError:  # not a symbol
         slab_cache = slab_cache_containing(prog, addr)
 
         if slab_cache.value_():
             # address is slab allocated
+            value = hex(prog.read_word(addr))
             cache_name = escape_ascii_string(
                 slab_cache.name.string_(), escape_backslash=True
             )
-            return '"{}"'.format(cache_name)
+            return "[{}:{}]".format(value, cache_name)
 
         # Unrecognized address
         return None

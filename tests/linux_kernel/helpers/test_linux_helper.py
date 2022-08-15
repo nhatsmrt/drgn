@@ -12,7 +12,9 @@ from tests.linux_kernel import (
 class TestLinuxHelpers(LinuxKernelTestCase):
     def test_identify_symbol(self):
         symbol = self.prog.symbol("__schedule")
-        self.assertEqual(identify_address(self.prog, symbol.address + 1), '"__schedule+1"')
+        self.assertEqual(
+            identify_address(self.prog, symbol.address + 1), "__schedule+1"
+        )
 
     @skip_unless_have_full_mm_support
     @skip_unless_have_test_kmod
@@ -21,7 +23,8 @@ class TestLinuxHelpers(LinuxKernelTestCase):
 
         if not self.prog["drgn_test_slob"]:
             for obj in objects:
+                value = hex(self.prog.read_word(obj))
                 self.assertEqual(
                     identify_address(self.prog, obj),
-                    '"drgn_test"',
+                    f"[{value}:drgn_test]",
                 )
