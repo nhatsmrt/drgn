@@ -263,10 +263,13 @@ def slab_cache_containing(prog: Program, addr: IntegerLike) -> Object:
     :return: ``struct kmem_cache *`` containing *addr*, or ``NULL`` if *addr*
         is not from a slab cache.
     """
+    if isinstance(addr, Object):
+        addr = addr.value_()
+
     null_obj = NULL(prog, "struct kmem_cache *")
 
-    start_addr = pfn_to_virt(prog["min_low_pfn"])
-    end_addr = pfn_to_virt(prog["max_pfn"]) + prog["PAGE_SIZE"]
+    start_addr = (pfn_to_virt(prog["min_low_pfn"])).value_()
+    end_addr = (pfn_to_virt(prog["max_pfn"]) + prog["PAGE_SIZE"]).value_()
 
     if addr < start_addr or addr >= end_addr:
         # Not a directly mapped address
