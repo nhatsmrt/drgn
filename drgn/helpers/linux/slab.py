@@ -265,8 +265,8 @@ def slab_cache_containing(prog: Program, addr: IntegerLike) -> Object:
     """
     null_obj = NULL(prog, "struct kmem_cache *")
 
-    start_addr = pfn_to_virt(prog["min_low_pfn"]).value_()
-    end_addr = (pfn_to_virt(prog["max_pfn"]) + prog["PAGE_SIZE"]).value_()
+    start_addr = pfn_to_virt(prog["min_low_pfn"])
+    end_addr = pfn_to_virt(prog["max_pfn"]) + prog["PAGE_SIZE"]
 
     if addr < start_addr or addr >= end_addr:
         # Not a directly mapped address
