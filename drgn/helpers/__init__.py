@@ -21,7 +21,7 @@ import enum
 import typing
 from typing import Container, Iterable, Tuple
 
-from drgn import IntegerLike, Type, Program
+from drgn import IntegerLike, Type
 
 
 class ValidationError(Exception):
@@ -231,29 +231,3 @@ def decode_enum_type_flags(
         enumerators,  # type: ignore  # python/mypy#592
         bit_numbers,
     )
-
-def identify_address(prog: Program, addr: IntegerLike) -> Optional[str]:
-    """
-    Identify an address as a symbol or slab object.
-
-    This will currently identify the following types of addresses as follows:
-
-    * Symbols (e.g., addresses in functions or global variables): `"symbol_name+offset"`.
-    * Slab objects: `"slab_name"`.
-
-    This may learn to recognize other types of addresses in the future.
-
-    :return: Identity as string or ``None` if the address is unrecognized.
-    """
-
-    try:
-        if isinstance(addr, Object):
-            addr = addr.value_()
-
-        symbol = prog.symbol(addr)
-        offset = addr - symbol.address
-        return "\"{}\"+{}".format(symbol.name, symbol.address)
-    except LookupError: # not a symbol
-
-        # Unrecognized address
-        return None
