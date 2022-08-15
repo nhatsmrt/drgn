@@ -11,8 +11,8 @@ from tests.linux_kernel import (
 
 class TestLinuxHelpers(LinuxKernelTestCase):
     def test_identify_symbol(self):
-        symbol = self.prog.symbol("jiffies")
-        self.assertEqual(identify_address(self.prog, symbol.address), '"jiffies_64+0"')
+        symbol = self.prog.symbol("__schedule")
+        self.assertEqual(identify_address(self.prog, symbol.address + 1), '"__schedule+1"')
 
     @skip_unless_have_full_mm_support
     @skip_unless_have_test_kmod
