@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from drgn.helpers.linux import identify_address
+from drgn.helpers.linux.mm import pfn_to_virt
 from tests.linux_kernel import (
     LinuxKernelTestCase,
     skip_unless_have_full_mm_support,
@@ -28,3 +29,10 @@ class TestLinuxHelpers(LinuxKernelTestCase):
                     identify_address(self.prog, obj),
                     f"[{value}:drgn_test]",
                 )
+
+    def test_identify_unrecognized(self):
+        start_addr = (pfn_to_virt(self.prog["min_low_pfn"])).value_()
+        end_addr = (pfn_to_virt(self.prog["max_pfn"]) + self.prog["PAGE_SIZE"]).value_()
+
+        self.assertIsNone(identify_address(self.prog, start_addr - 1))
+        self.assertIsNone(identify_address(self.prog, end_addr))
